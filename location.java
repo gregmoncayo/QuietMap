@@ -14,12 +14,13 @@ public class location{
 		day = "Mon";
 		date = 1;
 		year = 1;
+		order = 0;
 		
 		location = null;
 		movement = true;	// ture = entering, false = leaving
 	}
 
-	public location(String mon, String da, int d, int y, String loc, boolean M){	// constructs using information and cheaks 
+	public location(String mon, String da, int d, int y, String loc, boolean M, int o){	// constructs using information and cheaks 
 											// valid data for year, month, day and time
 
 		if ( isMonth(mon) )					// cheak paramaters for valid entries
@@ -37,12 +38,13 @@ public class location{
 		if( y > 0 && y <= Year() )
 			year = y;
 		else year = 1;
+		order = 0;
 
 		location = loc;						// set location and movement
 		movement = M;
 	}
 
-	public location(Date d, String loc, boolean M){
+	public location(Date d, String loc, boolean M, int o){
 		
 		if ( d.toString().contains("Tue") )
 			day = "Tue";
@@ -83,8 +85,8 @@ public class location{
 		else month = "Jan";
 
 		date = d.getDate();
-		year = ( 1900 + d.getYear() );
-
+		year = (1900 + d.getYear() );
+		order = 0;
 		location = loc;
 		movement = M;
 	}
@@ -93,18 +95,22 @@ public class location{
 	/* Methods */
 	public String date(){						// return the date in a string
 		String ret = "";
-
-		ret += day;								// converting to strings
+	
+		ret += day;						// converting to strings
 		ret += " ";
 		ret += month;
 		ret += " ";
 		ret += date;
 		ret += " ";
-		ret += Integer.toString( year );
+		ret += Integer.toString(year);
 
 		return ret;
 	}
-	
+
+	public String getDay(){
+		return day;
+	}
+
 	public String loc(){						// return location
 		return location;
 	}
@@ -116,18 +122,24 @@ public class location{
 			return "Leaving";
 	}
 
-	public String toString(){										// returns a string with the given format
+	public String toString(){					// returns a string with the given format
 		String ret = date() + " " + move() + " " + location;		// Date, location, arriving/leaving
 		
 		return ret;
 	}
+	
+	public String sort(String time){				// returns an output string with all information
 
-	public void setDay(String a) {					// change the day of the week
+		return "";
+	}
+
+	public void setDay(String a) {					// change day of the week
 		if( isDay(a) )
 			day = a;
 		else day = "Mon";
 	}
-	public void setDate(int a){						// change day of the month
+
+	public void setDate(int a){					// change day of the month
 		if( a > 0 && a < 32 )	
 			date = a;
 	}
@@ -142,17 +154,33 @@ public class location{
 			year = a;
 	}
 
-	public void setLocation(String a){				// change the location
+	public void setLocation(String a){				// change location
 		location = a;
-	}
+	}	
 
-	public void setMove(boolean a){					// change the movement direction
+	public void setMove(boolean a){					// setm move
 		movement = a;
 	}
 
+	public void setOrder(int o){
+		order = o;
+	}
+
+	/* <, > operators */
+	public boolean lessThan(location lhs, location rhs){
+		if( lhs.order < rhs.order )
+			return true;
+		else return false;
+	}
+
+	public boolean greaterThan(location lhs, location rhs){
+		return !(lessThan(lhs, rhs) );
+	}
+
+
 	/* Member data */
-	int date, year;
-	String location, month, day;// time;
+	int date, year, order;
+	String location, month, day;
 	boolean movement;
 
 	/* Helper methods */

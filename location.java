@@ -14,7 +14,6 @@ public class location{
 		day = "Mon";
 		date = 1;
 		year = 1;
-//		time = "00:00:00";
 		
 		location = null;
 		movement = true;	// ture = entering, false = leaving
@@ -30,17 +29,13 @@ public class location{
 		if ( isDay(da) )
 			day = da;
 		else day = "Mon";
-//		if (t < 0 /* conditions for time */ )
-//			time = t;
-//		else time = 1;
 
 		if (d > 0 && d < 31 )
 			date = d;
 		else date = 1;
 		
-		int Year = Calendar.getInstance().get(Calendar.YEAR);
-		if( y > 0 && y <= Year )
-			year = (y - 1900 );
+		if( y > 0 && y <= Year() )
+			year = y;
 		else year = 1;
 
 		location = loc;						// set location and movement
@@ -87,10 +82,8 @@ public class location{
 			month = "Dec";
 		else month = "Jan";
 
-//		time = "00:00:00"; //d.toString();
 		date = d.getDate();
-//		month = d.getMonth();
-		year = d.getYear();
+		year = ( 1900 + d.getYear() );
 
 		location = loc;
 		movement = M;
@@ -100,16 +93,15 @@ public class location{
 	/* Methods */
 	public String date(){						// return the date in a string
 		String ret = "";
-//		ret += time;						// converting ints to strings
-//		ret += " ";
-		ret += day;
+
+		ret += day;								// converting to strings
 		ret += " ";
 		ret += month;
 		ret += " ";
 		ret += date;
 		ret += " ";
-		ret += Integer.toString( 1900 + year );
-//		System.out.println( "year: " + Integer.toString(year) );
+		ret += Integer.toString( year );
+
 		return ret;
 	}
 	
@@ -124,28 +116,18 @@ public class location{
 			return "Leaving";
 	}
 
-	public String toString(){					// returns a string with the given format
+	public String toString(){										// returns a string with the given format
 		String ret = date() + " " + move() + " " + location;		// Date, location, arriving/leaving
 		
 		return ret;
 	}
-	
-	public String sort(String time){				// returns an output string with all information
 
-		return "";
-	}
-
-/*	public void setTime(int a){					// change time
-		if ( a > 0 && a < /* need time paramaters  )
-			time = a;
-	}
-*/
-	public void setDay(String a) {
+	public void setDay(String a) {					// change the day of the week
 		if( isDay(a) )
 			day = a;
 		else day = "Mon";
 	}
-	public void setDate(int a){					// change month
+	public void setDate(int a){						// change day of the month
 		if( a > 0 && a < 32 )	
 			date = a;
 	}
@@ -156,9 +138,17 @@ public class location{
 	}
 
 	public void setYear(int a) {					// change year
-		if( a > 1 && a < Year() )
+		if( a > 1 && a <= Year() )
 			year = a;
-	}	
+	}
+
+	public void setLocation(String a){				// change the location
+		location = a;
+	}
+
+	public void setMove(boolean a){					// change the movement direction
+		movement = a;
+	}
 
 	/* Member data */
 	int date, year;
@@ -177,7 +167,8 @@ public class location{
 
 	/* Find the current year */
 	private int Year(){
-		return year = Calendar.getInstance().get(Calendar.YEAR);
+		int theYear = Calendar.getInstance().get(Calendar.YEAR);
+		return theYear;
 	}
 
 	private boolean isDay(String a){

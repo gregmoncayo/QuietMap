@@ -14,13 +14,12 @@ public class location{
 		day = "Mon";
 		date = 1;
 		year = 1;
-		order = 0;
 		
 		location = null;
 		movement = true;	// ture = entering, false = leaving
 	}
 
-	public location(String mon, String da, int d, int y, String loc, boolean M, int o){	// constructs using information and cheaks 
+	public location(String mon, String da, int d, int y, String loc, boolean M){	// constructs using information and cheaks 
 											// valid data for year, month, day and time
 
 		if ( isMonth(mon) )					// cheak paramaters for valid entries
@@ -38,13 +37,12 @@ public class location{
 		if( y > 0 && y <= Year() )
 			year = y;
 		else year = 1;
-		order = 0;
 
 		location = loc;						// set location and movement
 		movement = M;
 	}
 
-	public location(Date d, String loc, boolean M, int o){
+	public location(Date d, String loc, boolean M){
 		
 		if ( d.toString().contains("Tue") )
 			day = "Tue";
@@ -86,7 +84,6 @@ public class location{
 
 		date = d.getDate();
 		year = (1900 + d.getYear() );
-		order = 0;
 		location = loc;
 		movement = M;
 	}
@@ -107,8 +104,16 @@ public class location{
 		return ret;
 	}
 
-	public String getDay(){
+	public String getDay(){						// returns day
 		return day;
+	}
+
+	public String getMonth(){					// returns month
+		return month;
+	}
+
+	public int getYear(){						// returns year
+		return year;
 	}
 
 	public String loc(){						// return location
@@ -126,11 +131,6 @@ public class location{
 		String ret = date() + " " + move() + " " + location;		// Date, location, arriving/leaving
 		
 		return ret;
-	}
-	
-	public String sort(String time){				// returns an output string with all information
-
-		return "";
 	}
 
 	public void setDay(String a) {					// change day of the week
@@ -162,24 +162,20 @@ public class location{
 		movement = a;
 	}
 
-	public void setOrder(int o){
-		order = o;
-	}
-
 	/* <, > operators */
-	public boolean lessThan(location lhs, location rhs){
+/*	public boolean lessThan(location lhs, location rhs){		// usend insted of less than operator may delete depending on implimintation
 		if( lhs.order < rhs.order )
 			return true;
 		else return false;
 	}
 
-	public boolean greaterThan(location lhs, location rhs){
+	public boolean greaterThan(location lhs, location rhs){		// used insted or greater then operator
 		return !(lessThan(lhs, rhs) );
 	}
-
+*/
 
 	/* Member data */
-	int date, year, order;
+	int date, year;
 	String location, month, day;
 	boolean movement;
 

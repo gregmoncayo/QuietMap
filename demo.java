@@ -79,13 +79,13 @@ public class demo {
 			working.setLocation("Movie theature");
 		else if(loc == 4)
 			working.setLocation("AMC");
-//		System.out.println( working.toString() );		
+		
 		list.add(0, working);
 
 		}
 		
 		/* real code starts here */
-		System.out.println("Random have been entered for locations for testing");
+		System.out.println("Random values have been entered for locations for testing");
 		System.out.println( "Here is the ammount of locations currently entered: " + list.size() + "\n\nNow printing top 25" );
 
 		for(int i = 0; i < 25; ++i){
@@ -95,13 +95,14 @@ public class demo {
 		ArrayList<location> p = new ArrayList<location>();
 		String command = "quit", pastComm = "quit";
 		Scanner reader = new Scanner(System.in);
+		Scanner readint = new Scanner(System.in);
 		System.out.println("\nWhat would you like to do next?\n");
 		menue();
 		boolean run = true;
 		while(run){
 			index = 0;
 			command = reader.nextLine();
-		//	System.out.println(run + " Testing");
+
 			if(command.equals("Next") ){
 				command = pastComm;
 				index = pastIndex;
@@ -109,11 +110,13 @@ public class demo {
 			
 			if(command.equals("Quit") )
 				run = false;
-	/*		else if (command.equals("Year") ) {
-				
-				listByYear(list, p, 0, 0);
+			else if (command.equals("Year") ) {
+				int tempYear = 2019;
+				System.out.println("What year would you like to see");
+				tempYear = readint.nextInt();
+				pastIndex = listByYear(list, p, tempYear, index);
 				print(p);
-			}*/
+			}
 			else if(command.equals("Month" ) ) {
 				System.out.println("What month would you like to see");
 				String tempMonth;
@@ -144,47 +147,6 @@ public class demo {
 
 
 		} 
-		/*listByDay("Mon", list, p, 0);
-	
-		System.out.println("\n\nAbout to print top 25 mondays");	
-		
-		for (int i = (p.size() - 1); i > 0; i--){
-			System.out.println( p.get(i).toString());
-		}
-		
-		int usr = 2018;
-		System.out.println("\n\nTop 25 days in year " + usr);
-		listByYear(list, p, usr, 0);
-		for(int i = (p.size() -1 ); i > 0; --i){
-			System.out.println( p.get(i).toString() );
-		}
-
-		System.out.println("\n\nTop 25 weekends");
-		listByWeekend(list, p, 0);
-		for(int i = (p.size() - 1); i > 0; --i){
-			System.out.println( p.get(i).toString() );
-		}
-
-		System.out.println("\n\nTop 25 Week days");
-		listByWeekday(list, p, 0);
-		for(int i = (p.size() -1); i > 0; --i){
-			System.out.println(p.get(i).toString() );
-		}*/
-/*
-		if(command == "Year")
-			listByYear(list, p, 0, 0);
-		else if(command == "month" )
-			listByMonth(list, p, 0);
-		else if (command == "Day" ){
-			System.out.println("What day");			// need to get the specific day you want
-	
-			listByDay(dayOfWeek, list, p ,0);
-		}			
-		else if (command == "weekend")
-			listByWeekend(list, p, 0);
-		else if(command == "weekday")
-			listByWeekday(list, p , 0);
-*/
    } 
 	public static void print(ArrayList<location> p){
 		int line = 1;
@@ -193,13 +155,14 @@ public class demo {
 			++line;
 		}
 	}
-	public static void listByYear(ArrayList<location> l, ArrayList arr, int y, int index){		//find the top 25 values in a certain year
+	public static int listByYear(ArrayList<location> l, ArrayList arr, int y, int index){		//find the top 25 values in a certain year
 		arr.clear();											// linear time
 		while(arr.size() < 25 && index < l.size() ){
 			if(l.get(index).getYear() == y) 
 				arr.add(0, l.get(index) );
 			++index;
 		}
+		return index;
 	}
 	
 	public static int listByMonth(String mon, ArrayList<location> l, ArrayList arr, int index){

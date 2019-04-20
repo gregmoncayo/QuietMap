@@ -50,15 +50,15 @@
         android:id="@+id/toast_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="130dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginTop="60dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="115dp"
+        android:layout_marginLeft="115dp"
+        android:layout_marginTop="40dp"
         android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+        android:hapticFeedbackEnabled="true"
         android:onClick="toastMe"
         android:text="@string/securityinfo"
+        android:textAllCaps="false"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:visibility="visible" />
 
 </LinearLayout>

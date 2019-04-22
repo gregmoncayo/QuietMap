@@ -20,17 +20,26 @@
         app:srcCompat="@drawable/quietmaplogo" />
 
     <Button
+        android:id="@+id/registerbusiness"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:text="Register Business Account" />
+
+    <Button
         android:id="@+id/register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="20dp"
         android:paddingBottom="20dp"
-        android:text="Register Account" />
+        android:text="Register User Account" />
 
     <Button
         android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
         android:paddingTop="20dp"
         android:paddingBottom="20dp"
         android:text="Login" />

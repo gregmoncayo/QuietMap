@@ -17,7 +17,7 @@ import com.example.quietmap.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button registerBtn, loginBtn;
+    Button registerBtn, loginBtn, registerbusinessBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +25,13 @@ public class MainActivity extends AppCompatActivity {
 
         initializeViews();
 
+        registerbusinessBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RegistrationBusiness.class);
+                startActivity(intent);
+            }
+        });
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initializeViews() {
+        registerbusinessBtn = findViewById(R.id.registerbusiness);
         registerBtn = findViewById(R.id.register);
         loginBtn = findViewById(R.id.login);
     }

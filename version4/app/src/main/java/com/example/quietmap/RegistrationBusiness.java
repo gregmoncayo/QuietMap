@@ -11,14 +11,13 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.quietmap.LoginActivity;
-import com.example.quietmap.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class RegistrationActivity extends AppCompatActivity {
+public class RegistrationBusiness extends AppCompatActivity {
+
 
     private EditText emailTV, passwordTV;
     private Button regBtn;
@@ -29,7 +28,7 @@ public class RegistrationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_registration);
+        setContentView(R.layout.activity_registration_business);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -67,7 +66,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                             progressBar.setVisibility(View.INVISIBLE);
 
-                            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+                            Intent intent = new Intent(RegistrationBusiness.this, LoginActivity.class);
                             startActivity(intent);
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
@@ -81,7 +80,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private void initializeUI() {
         emailTV = findViewById(R.id.email);
         passwordTV = findViewById(R.id.password);
-        regBtn = findViewById(R.id.register);
+        regBtn = findViewById(R.id.registerbusiness);
         progressBar = findViewById(R.id.progressBar);
     }
     public void toastMe(View view){

@@ -41,26 +41,27 @@
         android:layout_height="wrap_content"
         android:text="Login" />
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="20dp"
-        android:layout_height="128dp"
-        android:visibility="gone" />
-
     <Button
         android:id="@+id/toast_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="115dp"
-        android:layout_marginLeft="115dp"
+        android:layout_gravity="center"
         android:layout_marginTop="40dp"
         android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
         android:hapticFeedbackEnabled="true"
         android:onClick="toastMe"
         android:text="@string/securityinfo"
-        android:textAllCaps="false"
+        android:textAllCaps="true"
         android:textStyle="bold"
         android:visibility="visible" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:visibility="invisible" />
 
 
 </LinearLayout>

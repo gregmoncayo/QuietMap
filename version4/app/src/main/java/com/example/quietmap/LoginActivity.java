@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void toastMe(View view){
         // Toast myToast = Toast.makeText(this, message, duration);
-        Toast myToast = Toast.makeText(this, "QuietMap does not collect personal information",
+        Toast myToast = Toast.makeText(this, "THIS APPLICATION DOES NOT COLLECT PERSONAL INFORMATION",
                 Toast.LENGTH_SHORT);
         myToast.show();
     }

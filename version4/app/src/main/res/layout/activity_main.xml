@@ -4,24 +4,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/backgroundofsplash"
-    android:baselineAligned="false"
+    android:background="@color/colorPrimary"
+    android:gravity="top|center_vertical"
     android:orientation="vertical"
+    android:padding="16dp"
     tools:context=".MainActivity">
+
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="311dp"
+        android:layout_height="260dp"
+        android:layout_gravity="center"
+        android:paddingTop="20dp"
+        app:srcCompat="@drawable/quietmaplogo" />
 
     <Button
         android:id="@+id/register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="170dp"
-
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
         android:text="Register Account" />
 
     <Button
         android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="180dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
         android:text="Login" />
 
 </LinearLayout>

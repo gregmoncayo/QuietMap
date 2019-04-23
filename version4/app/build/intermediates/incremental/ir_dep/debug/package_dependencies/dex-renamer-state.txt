@@ -1,0 +1,4 @@
+#Sun Apr 21 19:56:14 EDT 2019
+base.0=/Users/wilgensmistilien/Documents/GitHub/QuietMap/version4/app/build/intermediates/transforms/dexMerger/debug/10
+path.0=classes.dex
+renamed.0=classes.dex

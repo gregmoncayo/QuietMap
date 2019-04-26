@@ -6,6 +6,7 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,6 +21,10 @@ import java.util.List;
 import android.media.AudioManager;
 import android.view.View;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.app.NotificationManager;
+import android.os.Build;
+import android.app.NotificationChannel;
 
 public class GeofenceTransitionsIntentService extends IntentService {
 
@@ -54,6 +59,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
         audioManagerNormal = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManagerRinger = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManagerSilent = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+
+
+        // notificationId is a unique int for each notification that you must define
+
 
 
     }
@@ -91,6 +101,20 @@ public class GeofenceTransitionsIntentService extends IntentService {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
            // String geofenceTransitionDetails = getGeofenceTransitionDetails(this, geoFenceTransition, triggeringGeofences);
 
+
+            createNotificationChannel();
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(GeofenceTransitionsIntentService.this);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(GeofenceTransitionsIntentService.this, "Q")
+                    .setSmallIcon(R.drawable.ic_quiet)
+                    .setContentTitle("You are in a quiet zone")
+                    .setContentText("Your phone's ringer has been set to vibrate")
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true);
+
+            notificationManager.notify(1, builder.build());
+
             audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
         }
 
@@ -109,8 +133,41 @@ public class GeofenceTransitionsIntentService extends IntentService {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             //Toast.makeText(this, "Exited", Toast.LENGTH_SHORT).show();
             // Log the error.
+
+            createNotificationChannel();
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(GeofenceTransitionsIntentService.this);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(GeofenceTransitionsIntentService.this, "Q")
+                    .setSmallIcon(R.drawable.ic_loud)
+                    .setContentTitle("You have left a quiet zone")
+                    .setContentText("Your phone's ringer has been set to normal")
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true);
+
+            notificationManager.notify(1, builder.build());
+
             audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
         }
     }
+
+
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "QuietMap";
+            String description = "Sets the phone to vibrate or normal";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("Q", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
 
 }

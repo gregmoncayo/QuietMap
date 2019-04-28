@@ -89,7 +89,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Boolean LocationPermissionGranted = false;
     private GoogleMap Map;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private PlaceAutocompleteAdapter placeAutocompleteAdapter;
 
     private Marker marker;// = Map.addMarker(null);
     private boolean removeOn = false;
@@ -102,7 +101,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private int purple = Color.parseColor("#800080");
     private int yellow = Color.parseColor("#ffff00");
     private int strokeColor = green;
-    private int colorShade = 0;
 
 
     private LocationManager mgr;
@@ -122,10 +120,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     String keyLng = "Lng";
     String keyRadius = "Radius";
     String keystrokeColor = "strokeColor";
-    SharedPreferences shprefLat;
-    SharedPreferences shprefLng;
-    SharedPreferences shprefRadius;
-    SharedPreferences shprefstrokeColor;
     private ArrayList<Double> latList = new ArrayList<>();
     private ArrayList<Double> lngList = new ArrayList<>();
     private ArrayList<Double> radiusList = new ArrayList<>();
@@ -747,11 +741,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         { geofenceList.remove(i); Toast.makeText(MapActivity.this, "Removed!", Toast.LENGTH_SHORT).show();}
 
 
+                        //remove circle object at with corresponding lat/lng
                     for(int i = 0; i < circ.size(); i++)
                         if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
                             circ.get(i).remove();
 
 
+                        // remove data sets at with corresponding lat/lng
                         for(int i = 0; i < latList.size(); i++)
                             if(circle.getCenter().latitude == latList.get(i) && circle.getCenter().longitude == lngList.get(i))
                             {
@@ -858,9 +854,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                 float[] distance = new float[1];
 
+                // gives us the distance between the user's location and the center of a circle..
                 Location.distanceBetween(myLocationLatitude, myLocationLongitude, circle.getCenter().latitude,circle.getCenter().longitude,distance);
 
 
+                //and if its less than the circle radius the following will trigger depending on the circle's strokeColor
                 if ( distance[0] <= circle.getRadius() && strokeColor == yellow && removeOn == false && expandOn == false && shrinkOn == false)
                 {
                     Toast.makeText(MapActivity.this, "VIBRATE", Toast.LENGTH_LONG).show();
@@ -884,7 +882,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 
-
+    // builds the geofence
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL);
@@ -893,6 +891,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
 
+    // sends intent triggered by when when user enters or leaves quiet zone
     private PendingIntent getGeofencePendingIntent() {
         // Reuse the PendingIntent if we already have it.
         if (geofencePendingIntent != null) {

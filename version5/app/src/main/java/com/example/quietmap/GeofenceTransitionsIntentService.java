@@ -1,26 +1,20 @@
-package com.example.quietmap;
+// courtesy Wilgins Mistilien
+//
+ package com.example.quietmap;
 
 
-// https://stackoverflow.com/questions/55062679/geofencetransitionsintentservice-has-no-default-constructor
+
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.NotificationManagerCompat;
-import android.text.TextUtils;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 import android.os.ResultReceiver;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.media.AudioManager;
-import android.view.View;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.app.NotificationManager;
 import android.os.Build;
@@ -55,36 +49,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        //Intent i = getIntent();
-        audioManagerNormal = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManagerRinger = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManagerSilent = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-
-
-        // notificationId is a unique int for each notification that you must define
-
-
-
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
-        // int color = MapActivity.strokeColor
-
-
-      /* Bundle extras = intent.getExtras();
-        if(extras != null)
-            data = extras.getString("color");
-
-
-        if(data.equals("green"))
-            color = green;
-        else if(data.equals("yellow"))
-            color = yellow;
-        else if(data.equals("red"))
-            color = red;*/
 
 
         geofencingEvent = GeofencingEvent.fromIntent(intent);
@@ -94,12 +63,14 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         int geoFenceTransition = geofencingEvent.getGeofenceTransition();
 
+        // triggers when user enters
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
 
-            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
-           // String geofenceTransitionDetails = getGeofenceTransitionDetails(this, geoFenceTransition, triggeringGeofences);
+           // List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
 
+
+            // sends user notification
             createNotificationChannel();
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(GeofenceTransitionsIntentService.this);
@@ -111,26 +82,20 @@ public class GeofenceTransitionsIntentService extends IntentService {
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setAutoCancel(true);
 
+
+            // sends user notification with above setting
+
             notificationManager.notify(1, builder.build());
+
+
+           // sets phone to vibrate
 
             audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
         }
 
-
-     /*   else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER  && color == red) {
-          Toast.makeText(this, "Entered", Toast.LENGTH_SHORT).show();
-
-            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
-            // String geofenceTransitionDetails = getGeofenceTransitionDetails(this, geoFenceTransition, triggeringGeofences);
-
-            audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-        }*/
-
-
+        // triggers when user exits
         else if(geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
-            //Toast.makeText(this, "Exited", Toast.LENGTH_SHORT).show();
-            // Log the error.
+           // List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
             createNotificationChannel();
 
@@ -143,8 +108,12 @@ public class GeofenceTransitionsIntentService extends IntentService {
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setAutoCancel(true);
 
+
+            // sends user notification with above setting
             notificationManager.notify(1, builder.build());
 
+
+            // sets phone to sound
             audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
         }
 
@@ -156,8 +125,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
 
     private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
+        // Creates the NotificationChannel, but only on devices with API 26+ because the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "QuietMap";
             String description = "Sets the phone to vibrate or normal";

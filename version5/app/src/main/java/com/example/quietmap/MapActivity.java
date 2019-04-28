@@ -2,7 +2,7 @@
 package com.example.quietmap;
 
 import android.Manifest;
-import android.app.NotificationChannel;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -11,22 +11,18 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DecimalFormat;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -43,10 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
-
-
 import com.google.android.gms.maps.model.Marker;
-///
+
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.GoogleMap.OnCircleClickListener;
 import com.google.android.gms.maps.model.Circle;
@@ -57,7 +51,6 @@ import com.google.android.gms.location.GeofencingClient;
 import android.location.LocationProvider;
 import android.location.Criteria;
 import android.location.LocationManager;
-import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import android.app.PendingIntent;
@@ -69,9 +62,9 @@ import android.media.AudioManager;
 import android.content.Context;
 import android.os.Build;
 import android.app.NotificationManager;
-import android.support.v4.app.NotificationManagerCompat;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, OnMapLongClickListener {
+
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
     private static final String TAG = "MapActivity";
 
@@ -82,7 +75,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private String temp = "";
 
 
-    //public final Marker addMarker (MarkerOptions options);
 
     //widgets
     private AutoCompleteTextView searchText;
@@ -91,7 +83,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private ImageView remove;
     private ImageView expand;
     private ImageView shrink;
-
+    private ImageView history;
 
     //variables
     private Boolean LocationPermissionGranted = false;
@@ -99,8 +91,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private PlaceAutocompleteAdapter placeAutocompleteAdapter;
 
-    private double circleLat;
-    private double circleLng;
     private Marker marker;// = Map.addMarker(null);
     private boolean removeOn = false;
     private boolean addOn = false;
@@ -115,11 +105,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private int colorShade = 0;
 
 
-
-
-    double currentLatitudE, currentLongitudE;
-
-
     private LocationManager mgr;
     private String best;
     private double myLocationLatitude;
@@ -130,37 +115,34 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private ArrayList<Circle> circ = new ArrayList<>();
     private PendingIntent geofencePendingIntent;
 
-    //private Vector<Circle>
+
     AudioManager audioManager;// = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-
-
-
-    public void AddColor(String  string)
-    {
-        Intent intent = new Intent(MapActivity.this, GeofenceTransitionsIntentService.class);
-        intent.putExtra("color", string);
-        startActivity(intent);
-    }
+    String keyLat = "Lat";
+    String keyLng = "Lng";
+    String keyRadius = "Radius";
+    String keystrokeColor = "strokeColor";
+    SharedPreferences shprefLat;
+    SharedPreferences shprefLng;
+    SharedPreferences shprefRadius;
+    SharedPreferences shprefstrokeColor;
+    private ArrayList<Double> latList = new ArrayList<>();
+    private ArrayList<Double> lngList = new ArrayList<>();
+    private ArrayList<Double> radiusList = new ArrayList<>();
+    private ArrayList<Integer> strokeColorList = new ArrayList<>();
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(this, "Map is Ready", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MapActivity.this, "Map is Ready", Toast.LENGTH_SHORT).show();
         Map = googleMap;
-        Log.d(TAG, "OnMapReady: map is ready");
+        Log.d(TAG, "OnMapReady: Map is ready");
 
+        // Ask's user for location permission
         if (LocationPermissionGranted) {
             getDeviceLocation();
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return;
             }
             Map.setMyLocationEnabled(true); // Goes to your location when first opened
@@ -171,25 +153,58 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         }
 
-    }
+
+        // creates circle objects from previous uses of the app
+        if(latList.size() != 0)
+            for (int i = 0; i < latList.size(); i++) {
+                CircleOptions options = new CircleOptions()
+                        .center(new LatLng(latList.get(i), lngList.get(i)))
+                        .radius(radiusList.get(i))
+                        .strokeWidth(10)
+                        .strokeColor(strokeColorList.get(i))
+                        .fillColor(Color.argb(128, 255, 0, 0))
+                        .clickable(true);
 
 
-    //Map.setOnMapLongClickListener(this);
-    //...
-    @Override
-    public void onMapLongClick(LatLng point) {
-        // reverse geocode point
+                circ.add(Map.addCircle(options)); // adds those circles to the map
+
+
+                temp = Double.toString(latList.get(i)) + "/" + Double.toString(lngList.get(i)); // using those circle's lat/lng we create a unique id for the geofences placed beneath them
+                geofenceList.add(new Geofence.Builder()
+                        .setRequestId(temp)
+                        .setCircularRegion(
+                                latList.get(i),
+                                lngList.get(i),
+                                Float.parseFloat(Double.toString(radiusList.get(i)))  // wouldn't let me do (float) radiusList.get(i)
+                        )
+                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .build());
+            }
+
+        circle(Map, 0, 0); // Placed here because above circles would not respond to touch unless a circle method was called
     }
 
 
     @Override
     protected void onCreate(@ Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        //shref = getSharedPreferences("MyPref", Context.MODE_PRIVATE);
 
-        searchText = (AutoCompleteTextView) findViewById(R.id.inputSearch);
+
+        // initializes the variables to the needed circle data of the previous uses of the app
+        TinyDB latDB = new TinyDB(MapActivity.this);
+        TinyDB lngDB = new TinyDB(MapActivity.this);
+        TinyDB radiusDB = new TinyDB(MapActivity.this);
+        TinyDB strokeColorDB = new TinyDB(MapActivity.this);
+
+
+        setContentView(R.layout.activity_map); // switch
 
         getLocationPermission();
+
+        searchText = (AutoCompleteTextView) findViewById(R.id.inputSearch);
 
         gps = (ImageView) findViewById(R.id.gps_icon);
 
@@ -201,7 +216,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         shrink = (ImageView) findViewById(R.id.shrink_icon);
 
-
+        history  = (ImageView) findViewById(R.id.ic_history);
 
         mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
 
@@ -210,16 +225,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Criteria criteria = new Criteria();
 
         best = mgr.getBestProvider(criteria, true);
-        Log.d("best provider", best);
-
         Location location = mgr.getLastKnownLocation(best);
         dumpLocation(location);
 
 
-        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofencingClient = LocationServices.getGeofencingClient(MapActivity.this);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        // ask for help
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -233,28 +245,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             startActivity(intent);
         }
 
+
+
+        //initializes are lists with the data retrieved from previous uses
+        latList = latDB.getListDouble(keyLat);
+        lngList =lngDB.getListDouble(keyLng);
+        radiusList = radiusDB.getListDouble(keyRadius);
+        strokeColorList = strokeColorDB.getListInt(keystrokeColor);
+
     }
+
+
+
 
     @Override
     public void onLocationChanged(Location location) {
         dumpLocation(location);
-
-        //Toast.makeText(MapActivity.this, myLocationLatitude + " WORKS " + myLocationLongitude + "", Toast.LENGTH_LONG).show();
-
-
-       /* float[] distance = new float[1];
-
-        Circle circle;
-        Location.distanceBetween(myLocationLatitude, myLocationLongitude, circle.getCenter().latitude,circle.getCenter().longitude,distance);
-
-        if ( distance[0] <= circle.getRadius() && strokeColor == yellow)
-        {
-            Toast.makeText(MapActivity.this, "Yellow Works!!!", Toast.LENGTH_LONG).show();
-        }
-        else if(distance[0] <= circle.getRadius() && strokeColor == red)
-        {
-            Toast.makeText(MapActivity.this, "Red Works!!!", Toast.LENGTH_LONG).show();
-        }*/
     }
 
     @Override
@@ -278,6 +284,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         super.onPause();
         mgr.removeUpdates(this);
+
+
+        // Not needed
+        TinyDB latDB = new TinyDB((MapActivity.this));
+        TinyDB lngDB = new TinyDB((MapActivity.this));
+        TinyDB radiusDB = new TinyDB((MapActivity.this));
+        TinyDB strokecolorDB = new TinyDB((MapActivity.this));
+
+
+        latDB.putListDouble(keyLat, latList);
+        lngDB.putListDouble(keyLng, lngList);
+        radiusDB.putListDouble(keyRadius, radiusList);
+        strokecolorDB.putListInt(keystrokeColor, strokeColorList);
+
     }
 
     @Override
@@ -289,16 +309,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 
-    private void dumpLocation(Location l) {
+    private void dumpLocation(Location locale) {
 
-        if (l == null) {
+        if (locale == null) {
 
             myLocationLatitude = 0.0;
             myLocationLongitude = 0.0;
         } else {
 
-            myLocationLatitude = l.getLatitude();
-            myLocationLongitude = l.getLongitude();
+            myLocationLatitude = locale.getLatitude();    // needed to determine whether a circle will trigger when touched if user is within quiet zone
+            myLocationLongitude = locale.getLongitude();
         }
     }
 
@@ -320,19 +340,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 
-   /* private boolean arePointsNear( Location checkPoint, Location centerPoint, double m) {
-        double ky = 40000 / 360;
-        double kx = Math.cos(Math.PI * centerPoint.lat / 180.0) * ky;
-        double dx = Math.abs(centerPoint.lng - checkPoint.lng) * kx;
-        double dy = Math.abs(centerPoint.lat - checkPoint.lat) * ky;
-        return Math.sqrt(dx * dx + dy * dy) <= m;
-    }*/
-
-    private void init()
+    private void init()   // function that reinitializes the map when the user searches for a location
     {
         Log.d(TAG, "init: initializing");
 
-        Log.d(TAG, "init: initializing");
 
         searchText.setOnEditorActionListener(new TextView.OnEditorActionListener()
         {
@@ -352,6 +363,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+
+        // moves map to user's location
         gps.setOnClickListener(new View.OnClickListener()
         {
 
@@ -364,6 +377,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
 
 
+
+        // allows for the addition of new quiet zone
         add.setOnClickListener(new View.OnClickListener()
         {
 
@@ -403,6 +418,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+
+        // allows for the emoval of quiet zones
         remove.setOnClickListener(new View.OnClickListener()
         {
 
@@ -433,6 +450,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
 
 
+
+        //allows the the expansion of quiet zones
         expand.setOnClickListener(new View.OnClickListener()
         {
 
@@ -462,6 +481,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+
+        //allows the the reduction of quiet zones
         shrink.setOnClickListener(new View.OnClickListener()
         {
 
@@ -491,13 +512,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
-        hideAway();
+
+        // work in progress
+        history.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+             {
+
+
+             }
+
+        });
+
+       // hideAway();
     }
 
 
-    private void geoLocate()
+    private void geoLocate()  // allows user sto type in address and move map to that location
     {
-        Log.d(TAG, "geoLocate: geolocating");
+        Log.d(TAG, "geoLocate: Geolocating");
 
         String searchString = searchText.getText().toString();
         Geocoder geocoder = new Geocoder(MapActivity.this);
@@ -518,19 +551,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if(list.size() > 0) // if more than 0 hits, sets the first hit in our search to address
         {
             Address address = list.get(0);
-            Log.d(TAG, "geoLocate: found at location: " + address.toString());
+            Log.d(TAG, "geoLocate: Found at location: " + address.toString());
 
-            //Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
-
-            circleLat = address.getLatitude();
-            circleLng = address.getLongitude();
 
             moveCam(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_Z, address.getAddressLine(0));
         }
     }
 
 
-    private void getDeviceLocation()
+    private void getDeviceLocation()   // gets
     {
         Log.d(TAG, "getDeviceLocation: getting the device's current location");
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -550,9 +579,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             Location currentLocation = (Location) task.getResult();
 
                             moveCam(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_Z, "My Location");
-
-                            circleLat = currentLocation.getLatitude(); // dont need
-                            circleLng = currentLocation.getLongitude();
                         }
 
                         else
@@ -579,7 +605,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "moveCam: moving camera to: lat: " + latitudeLongitude.latitude + ", lng: " + latitudeLongitude.longitude);
         Map.moveCamera(CameraUpdateFactory.newLatLngZoom(latitudeLongitude, zoom)); // moves map  camera to recieved latitudeLongitude
 
-        if(title.equals("My Location")) // does nothing
+        if(title.equals("My Location")) // doesn't put marker on user's location
         {
 
         }
@@ -593,48 +619,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     .position(latitudeLongitude)
                     .title(title);
 
-            marker = Map.addMarker(options); // put said marker on the map       customize marker
+            marker = Map.addMarker(options); // put said marker on the map
         }
 
-        hideAway();
+        //hideAway();
     }
 
     private void initMap()
-    {   // android map id in activity_map.xml
+    {
         Log.d(TAG, "initMap: initializing map");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(MapActivity.this);
-        //Toast.makeText(this, "Map is Ready", Toast.LENGTH_SHORT).show();
 
     }
 
 
 
+    // creates circles at passed in lat/lng on the map
     private void circle(GoogleMap googleMap, double Lat, double Lng)
     {
-        GoogleMap mMap = googleMap;
-        //geofencingClient = LocationServices.getGeofencingClient(MapActivity.this);
-
-
-
 
         CircleOptions options = new CircleOptions()
                 .center(new LatLng(Lat, Lng))
                 .radius(30)
                 .strokeWidth(10)
                 .strokeColor(Color.GREEN)
-                .fillColor(Color.argb(128, 255, colorShade, colorShade))
+                .fillColor(Color.argb(128, 255, 0, 0))
                 .clickable(true);
 
-        temp = Integer.toString(Color.argb(128, 255, colorShade, colorShade));
+        temp = Double.toString(Lat) + "/" + Double.toString(Lng);   // unique string to pair each circle with their underlying geofence
 
-        colorShade++;
-        String num = "1";
 
         geofenceList.add(new Geofence.Builder()
-                // Set the request ID of the geofence. This is a string to identify this
-                // geofence.
                 .setRequestId(temp)
                 .setCircularRegion(
                         Lat,
@@ -646,51 +663,74 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         Geofence.GEOFENCE_TRANSITION_EXIT)
                 .build());
 
-        mMap.addCircle(options);
+        circ.add(Map.addCircle(options));
         // geofenceList.
 
 
+
+
+        // adds circle data to the lists that need to be saved
+        latList.add(circ.get(circ.size() - 1).getCenter().latitude);
+        lngList.add(circ.get(circ.size() - 1).getCenter().longitude);
+        radiusList.add(circ.get(circ.size() - 1).getRadius());
+        strokeColorList.add(circ.get(circ.size() - 1).getStrokeColor());
+
+        // create storage location for each of those data sets
+        TinyDB latDB = new TinyDB((MapActivity.this));
+        TinyDB lngDB = new TinyDB((MapActivity.this));
+        TinyDB radiusDB = new TinyDB((MapActivity.this));
+        TinyDB strokecolorDB = new TinyDB((MapActivity.this));
+
+        // stores the data into those db using a unique key and the list of specified type
+        latDB.putListDouble(keyLat, latList);
+        lngDB.putListDouble(keyLng, lngList);
+        radiusDB.putListDouble(keyRadius, radiusList);
+        strokecolorDB.putListInt(keystrokeColor, strokeColorList);
 
 
         geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
                 .addOnSuccessListener(MapActivity.this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        // Geofences added
-                        Toast.makeText(MapActivity.this, temp, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Geofences sucessfully added");
                     }
                 })
                 .addOnFailureListener(MapActivity.this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        // Failed to add geofences
-                        Toast.makeText(MapActivity.this, "Noooooooo!", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, " Failed to add geofences");
                     }
                 });
 
-
-
-
-        // quietLat.add(Lat);
-        // quietLng.add(Lng);
 
         googleMap.setOnCircleClickListener(new OnCircleClickListener() {
 
             @Override
             public void onCircleClick(Circle circle) {
-                // Flip the r, g and b components of the circle's
-                // stroke color.
+                addOn = false;
+                add.setColorFilter(black);
 
+               Map.setOnMapClickListener(null); // just prevents any actions on the map from firing when circles are touched
+
+
+                // changes circles circumference color when clicked
                 if(removeOn == false && expandOn == false && shrinkOn == false) {
 
-                    if(strokeColor == green)
+                    if(circle.getStrokeColor() == green)
                         strokeColor = yellow;
-                    else if(strokeColor == yellow)
+                    else if(circle.getStrokeColor() == yellow)
                         strokeColor = red;
-                    else if(strokeColor == red)
+                    else if(circle.getStrokeColor() == red)
                         strokeColor = green;
 
                     circle.setStrokeColor(strokeColor);
+
+                    // updates the corresponding index's color also
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                        {
+                            strokeColorList.set(i, strokeColor);
+                        }
                 }
 
 
@@ -698,25 +738,45 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 else if(removeOn == true)
                 {
 
-                    String temp = Integer.toString(circle.getFillColor());
+                    String temp = Double.toString(circle.getCenter().latitude) + "/" + Double.toString(circle.getCenter().longitude);
 
 
+                    // uses the touched circle's string coverted lat/lng to remove corresponding geofence
                     for(int i = 0; i < geofenceList.size(); i++)
                         if(temp.equals(geofenceList.get(i).getRequestId()))
                         { geofenceList.remove(i); Toast.makeText(MapActivity.this, "Removed!", Toast.LENGTH_SHORT).show();}
+
+
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                            circ.get(i).remove();
+
+
+                        for(int i = 0; i < latList.size(); i++)
+                            if(circle.getCenter().latitude == latList.get(i) && circle.getCenter().longitude == lngList.get(i))
+                            {
+                                latList.remove(i);
+                                lngList.remove(i);
+                                radiusList.remove(i);
+                                strokeColorList.remove(i);
+                            }
 
 
                     circle.remove();
                 }
                 else if(expandOn == true)
                 {
-                    String temp = Integer.toString(circle.getFillColor());
+                    String temp = Double.toString(circle.getCenter().latitude) + "/" + Double.toString(circle.getCenter().longitude);
 
                     for(int i = 0; i < geofenceList.size(); i++)
                         if(temp.equals(geofenceList.get(i).getRequestId()))
                         { geofenceList.remove(i); Toast.makeText(MapActivity.this, "Grew", Toast.LENGTH_SHORT).show();}
 
-                    circle.setRadius(circle.getRadius() + 10);
+                                circle.setRadius(circle.getRadius() + 10);
+
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                            circ.get(i).setRadius(circle.getRadius());
 
                     geofenceList.add(new Geofence.Builder()
                             // Set the request ID of the geofence. This is a string to identify this
@@ -733,12 +793,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                     Geofence.GEOFENCE_TRANSITION_EXIT)
                             .build());
 
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                        {
+                            radiusList.set(i, circle.getRadius());
+                        }
+
 
                 }
 
                 else if(shrinkOn == true && circle.getRadius()!= 10)
                 {
-                    String temp = Integer.toString(circle.getFillColor());
+                    String temp = Double.toString(circle.getCenter().latitude) + "/" + Double.toString(circle.getCenter().longitude);
 
                     for(int i = 0; i < geofenceList.size(); i++)
                         if(temp.equals(geofenceList.get(i).getRequestId()))
@@ -746,6 +812,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     circle.setRadius(circle.getRadius() - 10);
 
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                            circ.get(i).setRadius(circle.getRadius());
+
                     geofenceList.add(new Geofence.Builder()
                             // Set the request ID of the geofence. This is a string to identify this
                             // geofence.
@@ -760,40 +830,51 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
                                     Geofence.GEOFENCE_TRANSITION_EXIT)
                             .build());
+
+
+                    for(int i = 0; i < circ.size(); i++)
+                        if(circle.getCenter().longitude == circ.get(i).getCenter().longitude && circle.getCenter().latitude == circ.get(i).getCenter().latitude)
+                        {
+                            radiusList.set(i, circle.getRadius());
+                        }
                 }
 
 
-                    /*String color = "";
 
-                    if(strokeColor == green)
-                        color = "green";
-                    else if(strokeColor == yellow)
-                        color = "yellow";
-                    else if(strokeColor == red)
-                        color = "red";
+                    // Not needed
+                /*Task location = mFusedLocationProviderClient.getLastLocation();
+                location.addOnCompleteListener(new OnCompleteListener() {
+                                                   @Override
+                                                   public void onComplete(@NonNull Task task) {
+                                                       if (task.isSuccessful()) {
+                                                           Log.d(TAG, "onComplete: found location");
+                                                           Location currentLocation = (Location) task.getResult();
+                                                           myLocationLatitude = currentLocation.getLatitude();
+                                                           myLocationLongitude = currentLocation.getLongitude();
+                                                       }
+                                                   }
+                                               });*/
 
-                    Intent intent = new Intent(MapActivity.this, GeofenceTransitionsIntentService.class);
-                    intent.putExtra("color", color);
-                    startActivity(intent);*/
 
                 float[] distance = new float[1];
 
                 Location.distanceBetween(myLocationLatitude, myLocationLongitude, circle.getCenter().latitude,circle.getCenter().longitude,distance);
 
+
                 if ( distance[0] <= circle.getRadius() && strokeColor == yellow && removeOn == false && expandOn == false && shrinkOn == false)
                 {
-                    Toast.makeText(MapActivity.this, "Ringer set to vibrate", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapActivity.this, "VIBRATE", Toast.LENGTH_LONG).show();
                     audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
                 }
                 else if(distance[0] <= circle.getRadius() && strokeColor == red && removeOn == false && expandOn == false && shrinkOn == false)
                 {
-                    Toast.makeText(MapActivity.this, "Ringer set to silent", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapActivity.this, "SILENT", Toast.LENGTH_LONG).show();
                     audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
                 }
 
                 else if(distance[0] <= circle.getRadius() && strokeColor == green && removeOn == false && expandOn == false && shrinkOn == false)
                 {
-                    Toast.makeText(MapActivity.this, "Ringer set to normal", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapActivity.this, "NORMAL", Toast.LENGTH_LONG).show();
                     audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
                 }
 
@@ -806,7 +887,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL);
         builder.addGeofences(geofenceList);
         return builder.build();
     }
@@ -834,9 +915,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "getLocationPermission:geting location permissions");
         String[] permission = {FINE_LOCATION, COARSE_LOCATION};
 
-        if(ContextCompat.checkSelfPermission(this.getApplicationContext(), FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        if(ContextCompat.checkSelfPermission(MapActivity.this.getApplicationContext(), FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
-            if(ContextCompat.checkSelfPermission(this.getApplicationContext(), COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+            if(ContextCompat.checkSelfPermission(MapActivity.this.getApplicationContext(), COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             {
                 LocationPermissionGranted = true;
                 initMap();
@@ -887,10 +968,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 
-    private void hideAway()  // suppose to hide key pad when location is entered
+   /* private void hideAway()  // suppose to hide key pad when location is entered
     {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
-
-    // find out how we are gooing to check if phone is in area check every
+    }*/
 }

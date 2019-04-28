@@ -89,14 +89,12 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         geofencingEvent = GeofencingEvent.fromIntent(intent);
         if (geofencingEvent.hasError()) {
-            Toast.makeText(this, "Event has error", Toast.LENGTH_SHORT).show();
             return;
         }
 
         int geoFenceTransition = geofencingEvent.getGeofenceTransition();
 
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-          Toast.makeText(this, "Entered", Toast.LENGTH_SHORT).show();
 
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
            // String geofenceTransitionDetails = getGeofenceTransitionDetails(this, geoFenceTransition, triggeringGeofences);
@@ -148,6 +146,10 @@ public class GeofenceTransitionsIntentService extends IntentService {
             notificationManager.notify(1, builder.build());
 
             audioManagerRinger.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        }
+
+        else if(geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
+
         }
     }
 

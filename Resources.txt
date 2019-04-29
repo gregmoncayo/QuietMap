@@ -1,0 +1,35 @@
+- https://www.androidhive.info/2016/06/android-getting-started-firebase-simple-login-registration-auth/
+
+- https://codelabs.developers.google.com/codelabs/build-your-first-android-app/#7
+
+- https://firebase.google.com/docs/crashlytics/get-started
+
+- https://www.androidhire.com/google-login-and-registration-for-android-using-firebase/
+
+- https://youtu.be/er3vADdqAYA
+
+- https://www.youtube.com/watch?v=urLA8z6-l3k
+
+- https://developers.google.com/android/reference/com/google/android/gms/maps/model/Circle
+
+- https://developer.android.com/training/location/geofencing
+
+- https://developer.android.com/training/notify-user/build-notification
+
+- https://github.com/kcochibili/TinyDB--Android-Shared-Preferences-Turbo/blob/master/TinyDB.java
+
+- https://www.tutorialspoint.com/android/android_list_view.htm
+
+- https://www.youtube.com/watch?v=4b_D8dDBri8&t=30s
+
+- https://www.youtube.com/watch?v=ediklbippkA
+
+- https://developer.android.com/guide/topics/ui/floating-action-button
+
+- https://www.youtube.com/watch?v=9eTK8ZOBJsQ
+
+- https://www.youtube.com/watch?v=aE5f1tV5nU4
+
+- https://developer.android.com/training/basics/firstapp/starting-activity
+
+
